@@ -191,6 +191,9 @@ tr.row:hover td,tr.row.on td{background:var(--card2)}
   *,*:before,*:after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
   .edge{stroke-dashoffset:0}.node,.elab{opacity:1}
 }
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:6px;vertical-align:middle}
+.badge-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.02em}
 </style>
 </head>
 <body>
@@ -227,7 +230,11 @@ tr.row:hover td,tr.row.on td{background:var(--card2)}
 
   <div class="head">
     <div>
-      <h1>Market impact overview</h1>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <h1>Market impact overview</h1>
+        <span id="badge-offline" class="badge-tag" style="display:none;background:rgba(245,184,74,.15);color:var(--c3);border:1px solid rgba(245,184,74,.35)">Offline mode</span>
+        <span id="badge-mode" class="badge-tag" style="background:var(--card2);color:var(--mut);border:1px solid var(--line)">Mode: Connecting...</span>
+      </div>
       <p class="sub" id="headline">Choose an event or paste a headline to trace how it spreads.</p>
     </div>
     <div class="seg" id="events" role="tablist" aria-label="Demo events"></div>
@@ -369,23 +376,25 @@ function countUp(el){
   (function f(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=(to*e).toFixed(dec)+suf;if(k<1)requestAnimationFrame(f)})(t0);
 }
 function renderKpis(r){
-  const pos=r.assets.filter(a=>a.impact>0).length,neg=r.assets.length-pos;
-  const avg=r.chains.reduce((s,p)=>s+p.conf,0)/Math.max(1,r.chains.length);
-  const types=new Set(r.assets.map(a=>a.type)).size;
-  const L=layoutGraph(r);
-  const mini=r.chains.slice(0,6).map((p,i)=>`<i style="height:${Math.max(14,p.conf*100)}%;animation-delay:${.15+i*.07}s"></i>`).join('');
-  const mag=r.ex.mag?(r.sign>0?'+':'-')+r.ex.mag:(r.sign>0?'Up':'Down');
+  const pos = r.kpis ? r.kpis.positive : r.assets.filter(a=>a.impact>0).length;
+  const neg = r.kpis ? r.kpis.negative : r.assets.length-pos;
+  const avg = r.kpis ? r.kpis.avg_confidence : (r.chains.reduce((s,p)=>s+p.conf,0)/Math.max(1,r.chains.length));
+  const traced = r.kpis ? r.kpis.chains_traced : (r.all ? r.all.length : r.chains.length);
+  const types = new Set(r.assets.map(a=>a.type)).size;
+  const L = layoutGraph(r);
+  const mini = r.chains.slice(0,6).map((p,i)=>`<i style="height:${Math.max(14,p.conf*100)}%;animation-delay:${.15+i*.07}s"></i>`).join('');
+  const mag = r.ex.mag?(r.sign>0?'+':'-')+r.ex.mag:(r.sign>0?'Up':'Down');
   $('#kpis').innerHTML=`
   <div class="card kpi"><div class="l">Event</div><div class="v" style="font-size:22px;padding:4px 0">${esc(short(r.start))}</div><div class="d">${esc(mag)} on the trigger</div>
     <div class="viz"><span class="pill ${r.sign>0?'pos':'neg'}">${r.sign>0?'Rising':'Falling'}</span></div></div>
   <div class="card kpi"><div class="l">Assets affected</div><div class="v" data-to="${r.assets.length}">0</div><div class="d">Across ${types} asset types</div>
-    <div class="viz"><div class="split"><i class="p" style="width:${pos/r.assets.length*100}%"></i><i class="n" style="width:${neg/r.assets.length*100}%"></i></div></div></div>
-  <div class="card kpi"><div class="l">Chains traced</div><div class="v" data-to="${r.all.length}">0</div><div class="d">Up to 4 steps each</div>
+    <div class="viz"><div class="split"><i class="p" style="width:${pos/Math.max(1,r.assets.length)*100}%"></i><i class="n" style="width:${neg/Math.max(1,r.assets.length)*100}%"></i></div></div></div>
+  <div class="card kpi"><div class="l">Chains traced</div><div class="v" data-to="${traced}">0</div><div class="d">Up to 4 steps each</div>
     <div class="viz"><div class="mini">${mini}</div></div></div>
   <div class="card kpi"><div class="l">Average confidence</div><div class="v" data-to="${pct(avg)}" data-suf="%">0%</div><div class="d">Across the top chains</div>
     <div class="viz"><svg class="ring" viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9" pathLength="100"/><circle class="fg" cx="18" cy="18" r="15.9" pathLength="100" style="--len:${100-pct(avg)}"/></svg></div></div>
   <div class="card kpi"><div class="l">Positive and negative</div><div class="v"><span style="color:var(--pos)" data-to="${pos}">0</span> <span style="color:var(--faint);font-weight:400">/</span> <span style="color:var(--neg)" data-to="${neg}">0</span></div><div class="d">Assets gaining and losing</div>
-    <div class="viz"><div class="split"><i class="p" style="width:${pos/r.assets.length*100}%"></i><i class="n" style="width:${neg/r.assets.length*100}%"></i></div></div></div>`;
+    <div class="viz"><div class="split"><i class="p" style="width:${pos/Math.max(1,r.assets.length)*100}%"></i><i class="n" style="width:${neg/Math.max(1,r.assets.length)*100}%"></i></div></div></div>`;
   document.querySelectorAll('#kpis [data-to]').forEach(countUp);
 }
 
@@ -407,9 +416,10 @@ function renderGraph(r){
     const col=isStart?'var(--acc)':(imp>0?'var(--pos)':'var(--neg)');
     const sub=isStart?(r.ex.mag?(r.sign>0?'▲ ':'▼ ')+r.ex.mag:'Trigger'):`${imp>0?'▲':'▼'} ${best?pct(best.conf):''}%`;
     const dl=L.depth[n]*.28+.25;
+    const nType = (r.nodeMeta && r.nodeMeta[n] ? r.nodeMeta[n].type : (NODE[n] ? NODE[n].type : 'Unknown'));
     nodeSvg+=`<g class="node" data-n="${esc(n)}" tabindex="0" style="--tx:${p.x-L.NW/2}px;--ty:${p.y-L.NH/2}px;transform:translate(${p.x-L.NW/2}px,${p.y-L.NH/2}px);animation-delay:${dl}s">
       <rect class="box" width="${L.NW}" height="${L.NH}" rx="9" ${isStart?'style="stroke:var(--acc);stroke-width:1.8"':''}/>
-      <circle cx="14" cy="${L.NH/2}" r="4.5" fill="${TYPE_COL[NODE[n].type]||'var(--mut)'}"/>
+      <circle cx="14" cy="${L.NH/2}" r="4.5" fill="${TYPE_COL[nType]||'var(--mut)'}"/>
       <text class="nm" x="26" y="18">${esc(short(n))}</text>
       <text class="nt" x="26" y="34" fill="${col}">${sub}</text></g>`;
   });
@@ -419,8 +429,9 @@ function renderGraph(r){
     const n=g.dataset.n;
     g.addEventListener('mousemove',e=>{
       const b=r.best.get(n),rc=wrap.getBoundingClientRect();
-      const why=b?b.steps[b.steps.length-1].reason:'This is the event that starts the chain.';
-      tip.innerHTML=`<b>${esc(n)}</b><span>${esc(NODE[n].type)}${b?' · '+(b.impact>0?'positive':'negative')+' · '+pct(b.conf)+'% confidence':''}</span><br><span>${esc(why)}</span>`;
+      const nType = (r.nodeMeta && r.nodeMeta[n] ? r.nodeMeta[n].type : (NODE[n] ? NODE[n].type : 'Unknown'));
+      const why=b?(b.steps[b.steps.length-1].reason||b.explanation||'Impact chain connection'):'This is the event that starts the chain.';
+      tip.innerHTML=`<b>${esc(n)}</b><span>${esc(nType)}${b?' · '+(b.impact>0?'positive':'negative')+' · '+pct(b.conf)+'% confidence':''}</span><br><span>${esc(why)}</span>`;
       tip.style.left=Math.min(e.clientX-rc.left+14,rc.width-250)+'px';tip.style.top=(e.clientY-rc.top+14)+'px';tip.style.opacity=1;
     });
     g.addEventListener('mouseleave',()=>tip.style.opacity=0);
@@ -440,7 +451,8 @@ function highlight(p){
 function renderWhy(p){
   const r=state.r;
   const rows=p.steps.map(s=>`<div class="step"><span class="a">${esc(short(s.from))} → ${esc(short(s.to))}</span><span class="r">${esc(s.reason)}</span><span class="c">${pct(s.conf)}%</span></div>`).join('');
-  $('#why').innerHTML=`<h3>Why this chain: ${esc(short(p.steps[0].from))} to ${esc(short(p.target))}</h3>${rows}
+  const expl = p.explanation ? `<div class="net" style="margin-top:10px;padding:9px 12px;background:var(--card2);border-radius:8px;border-left:3px solid var(--acc)"><b>Explanation:</b> ${esc(p.explanation)}</div>` : '';
+  $('#why').innerHTML=`<h3>Why this chain: ${esc(short(p.steps[0].from))} to ${esc(short(p.target))}</h3>${rows}${expl}
     <div class="net">Net effect on ${esc(p.target)} is plausibly <span class="pill ${p.impact>0?'pos':'neg'}">${p.impact>0?'positive':'negative'}</span> with ${pct(p.conf)}% path confidence. Every link comes from a curated economic rule.</div>`;
 }
 function selectPath(x){
@@ -463,11 +475,11 @@ function renderAssets(r){
   const top=r.assets.slice(0,8);
   $('#assetn').textContent=`Top ${top.length} of ${r.assets.length}`;
   $('#assettbl').innerHTML=`<table><thead><tr><th>Asset</th><th>Effect</th><th>Confidence</th></tr></thead><tbody>`+
-   top.map((a,i)=>`<tr class="row" data-n="${esc(a.name)}"><td><span class="dot" style="background:${TYPE_COL[a.type]}"></span>${esc(short(a.name))}</td>
+   top.map((a,i)=>`<tr class="row" data-n="${esc(a.name)}"><td><span class="dot" style="background:${TYPE_COL[a.type]||'var(--mut)'}"></span>${esc(short(a.name))}</td>
     <td><span class="pill ${a.impact>0?'pos':'neg'}">${a.impact>0?'Up':'Down'}</span></td>
     <td><div class="cf"><div class="bar"><i style="width:${pct(a.conf)}%;animation-delay:${.3+i*.05}s"></i></div><span class="pcnt">${pct(a.conf)}%</span></div></td></tr>`).join('')+`</tbody></table>`;
   document.querySelectorAll('tr.row').forEach(t=>t.addEventListener('click',()=>{
-    const a=r.assets.find(x=>x.name===t.dataset.n);const i=r.chains.indexOf(a.path);selectPath(i>=0?i:a.path);
+    const a=r.assets.find(x=>x.name===t.dataset.n);if(a){const i=r.chains.indexOf(a.path);selectPath(i>=0?i:a.path)}
   }));
 }
 function renderSectors(r){
@@ -484,45 +496,271 @@ function renderDonut(r){
   let acc=0;const R=40,C=2*Math.PI*R;
   const segs=ent.map(([t,n],i)=>{
     const len=n/tot*C,off=acc;acc+=len;
-    return `<circle class="seg" cx="60" cy="60" r="${R}" stroke="${TYPE_COL[t]}" stroke-dasharray="${Math.max(0,len-2)} ${C}" style="--len:${len};stroke-dashoffset:${-off};animation:none;opacity:0;animation:fade .5s ${.2+i*.12}s forwards"/>`}).join('');
+    return `<circle class="seg" cx="60" cy="60" r="${R}" stroke="${TYPE_COL[t]||'var(--mut)'}" stroke-dasharray="${Math.max(0,len-2)} ${C}" style="--len:${len};stroke-dashoffset:${-off};animation:none;opacity:0;animation:fade .5s ${.2+i*.12}s forwards"/>`}).join('');
   $('#donut').innerHTML=`<div class="donut"><svg viewBox="0 0 120 120" role="img" aria-label="Assets by type"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--card2)" stroke-width="14"/>${segs}
     <text x="60" y="58" font-size="22" font-weight="600">${tot}</text><text x="60" y="74" font-size="10.5" style="fill:var(--mut)">assets</text></svg>
-    <div class="dl">${ent.map(([t,n])=>`<div><span><i class="dot" style="background:${TYPE_COL[t]}"></i>${esc(t)}</span><b style="font-weight:500">${n}</b></div>`).join('')}</div></div>`;
+    <div class="dl">${ent.map(([t,n])=>`<div><span><i class="dot" style="background:${TYPE_COL[t]||'var(--mut)'}"></i>${esc(t)}</span><b style="font-weight:500">${n}</b></div>`).join('')}</div></div>`;
 }
 
-function render(){
-  const r=analyze(state.news);
-  if(!r){toast('Couldn\u2019t find a known entity. Mention crude, repo rate, rupee, inflation, or a listed company.');return false}
-  state.r=r;
-  $('#headline').textContent=state.news;
-  renderKpis(r);renderGraph(r);renderChains(r);renderAssets(r);renderSectors(r);renderDonut(r);
-  if(r.chains.length)selectPath(Math.min(state.sel,r.chains.length-1));else $('#why').innerHTML='';
-  return true;
+function adaptBackendResponse(data, minConf = 0.12) {
+  const nodeMeta = {};
+  (data.nodes || []).forEach(n => { nodeMeta[n.id] = n; });
+
+  const best = new Map();
+  (data.affected_assets || []).forEach(a => {
+    if (a.path) {
+      best.set(a.name, {
+        target: a.name,
+        confidence: a.confidence,
+        conf: a.confidence,
+        impact: a.impact,
+        depth: a.path.depth || (a.path.steps ? a.path.steps.length : 1),
+        steps: (a.path.steps || []).map(s => ({
+          from: s.from || s.from_node,
+          to: s.to,
+          sign: s.sign,
+          conf: s.confidence,
+          confidence: s.confidence,
+          reason: s.reason || '',
+          evidence_type: s.evidence_type || 'knowledge',
+          evidence_text: s.evidence_text || ''
+        })),
+        explanation: a.path.explanation || null
+      });
+    }
+  });
+
+  const allChains = (data.top_paths || []).map(p => ({
+    target: p.target,
+    confidence: p.confidence,
+    conf: p.confidence,
+    impact: p.impact,
+    depth: p.depth,
+    steps: (p.steps || []).map(s => ({
+      from: s.from || s.from_node,
+      to: s.to,
+      sign: s.sign,
+      conf: s.confidence,
+      confidence: s.confidence,
+      reason: s.reason || '',
+      evidence_type: s.evidence_type || 'knowledge',
+      evidence_text: s.evidence_text || ''
+    })),
+    explanation: p.explanation || null
+  }));
+
+  allChains.forEach(p => {
+    if (!best.has(p.target)) best.set(p.target, p);
+  });
+
+  const filteredChains = allChains.filter(p => p.conf >= minConf);
+  const chains = filteredChains.length ? filteredChains : allChains;
+
+  const assets = (data.affected_assets || [])
+    .filter(a => a.confidence >= minConf)
+    .map(a => ({
+      name: a.name,
+      type: a.type || (nodeMeta[a.name] ? nodeMeta[a.name].type : (NODE[a.name] ? NODE[a.name].type : 'Unknown')),
+      impact: a.impact,
+      conf: a.confidence,
+      score: a.score !== undefined ? a.score : (a.impact * a.confidence),
+      path: best.get(a.name) || chains.find(c => c.target === a.name)
+    }));
+
+  return {
+    start: data.start_node || (data.event && data.event.primary_entity),
+    sign: data.start_sign !== undefined ? data.start_sign : (data.event && data.event.direction === 'down' ? -1 : 1),
+    ex: {
+      primary: data.start_node || (data.event && data.event.primary_entity),
+      sign: data.start_sign !== undefined ? data.start_sign : (data.event && data.event.direction === 'down' ? -1 : 1),
+      mag: data.event ? data.event.magnitude : null,
+      found: (data.nodes || []).map(n => n.id)
+    },
+    event: data.event,
+    nodes: data.nodes || [],
+    edges: data.edges || [],
+    nodeMeta: nodeMeta,
+    chains: chains,
+    all: allChains,
+    best: best,
+    assets: assets.length ? assets : (data.affected_assets || []).map(a => ({
+      name: a.name,
+      type: a.type || (nodeMeta[a.name] ? nodeMeta[a.name].type : (NODE[a.name] ? NODE[a.name].type : 'Unknown')),
+      impact: a.impact,
+      conf: a.confidence,
+      score: a.score !== undefined ? a.score : (a.impact * a.confidence),
+      path: best.get(a.name)
+    })),
+    kpis: data.kpis,
+    graph_size: data.graph_size,
+    disclaimer: data.disclaimer,
+    mode: data.mode || 'fallback'
+  };
+}
+
+async function fetchAnalyze(news){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3000);
+  try {
+    const res = await fetch('/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: news }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Server error (${res.status})`);
+    }
+    const data = await res.json();
+    return { data, isOffline: false };
+  } catch (err) {
+    clearTimeout(timer);
+    return { error: err.message, isOffline: true };
+  }
+}
+
+function updateBadges(isOffline, mode){
+  const offB = $('#badge-offline');
+  const modB = $('#badge-mode');
+  if (isOffline) {
+    offB.style.display = 'inline-flex';
+    modB.textContent = 'Offline Fallback';
+    modB.style.background = 'var(--card2)';
+    modB.style.color = 'var(--mut)';
+    modB.style.borderColor = 'var(--line)';
+  } else {
+    offB.style.display = 'none';
+    if (mode === 'llm') {
+      modB.textContent = 'LLM Active';
+      modB.style.background = 'var(--pos-soft)';
+      modB.style.color = 'var(--pos)';
+      modB.style.borderColor = 'var(--pos)';
+    } else {
+      modB.textContent = 'Keyword Fallback';
+      modB.style.background = 'var(--acc-soft)';
+      modB.style.color = 'var(--acc)';
+      modB.style.borderColor = 'var(--acc)';
+    }
+  }
+}
+
+function renderUI(r){
+  state.r = r;
+  $('#headline').textContent = state.news;
+  renderKpis(r);
+  renderGraph(r);
+  renderChains(r);
+  renderAssets(r);
+  renderSectors(r);
+  renderDonut(r);
+  if (r.chains && r.chains.length) {
+    selectPath(Math.min(state.sel, r.chains.length - 1));
+  } else {
+    $('#why').innerHTML = '<div class="empty">No chains above the confidence threshold.</div>';
+  }
+}
+
+async function triggerAnalysis(news, isUserSubmit = false){
+  const goBtn = $('#go');
+  goBtn.disabled = true;
+  goBtn.style.opacity = '0.7';
+  goBtn.innerHTML = '<span class="spin"></span>Analyzing...';
+
+  try {
+    const res = await fetchAnalyze(news);
+    if (!res.isOffline && res.data) {
+      state.backendRaw = res.data;
+      state.isOffline = false;
+      updateBadges(false, res.data.mode || 'fallback');
+      const adapted = adaptBackendResponse(res.data, state.minConf);
+      renderUI(adapted);
+      return true;
+    } else {
+      state.backendRaw = null;
+      state.isOffline = true;
+      updateBadges(true, 'local');
+      const localR = analyze(news);
+      if (!localR) {
+        toast('Couldn\u2019t find a known entity. Mention crude, repo rate, rupee, inflation, or a listed company.');
+        return false;
+      }
+      renderUI(localR);
+      if (isUserSubmit) {
+        toast('Server unreachable: using client-side offline engine.');
+      }
+      return true;
+    }
+  } catch (err) {
+    state.isOffline = true;
+    updateBadges(true, 'local');
+    const localR = analyze(news);
+    if (localR) renderUI(localR);
+    toast('Error connecting to server. Switched to offline mode.');
+    return !!localR;
+  } finally {
+    goBtn.disabled = false;
+    goBtn.style.opacity = '';
+    goBtn.innerHTML = 'Analyze';
+  }
 }
 
 /* ---------- controls ---------- */
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),3800)}
+
 function buildTabs(){
   $('#events').innerHTML=DEMOS.map(d=>`<button role="tab" data-k="${d.key}" class="${d.key===state.demo?'on':''}" aria-selected="${d.key===state.demo}">${d.label}</button>`).join('');
-  document.querySelectorAll('#events button').forEach(b=>b.addEventListener('click',()=>{
-    const d=DEMOS.find(x=>x.key===b.dataset.k);state.demo=d.key;state.news=d.news;state.sel=0;$('#news').value='';buildTabs();render();
-  }));
+  document.querySelectorAll('#events button').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      const d=DEMOS.find(x=>x.key===b.dataset.k);
+      state.demo=d.key;
+      state.news=d.news;
+      state.sel=0;
+      $('#news').value='';
+      buildTabs();
+      await triggerAnalysis(state.news, false);
+    });
+  });
 }
-function submit(){
-  const v=$('#news').value.trim();if(!v){toast('Paste a headline first.');return}
-  const prev=state.news;state.news=v;state.sel=0;
-  if(render()){state.demo='';buildTabs()}else state.news=prev;
+
+async function submit(){
+  const v=$('#news').value.trim();
+  if(!v){ toast('Paste a headline first.'); return; }
+  const prev=state.news;
+  state.news=v;
+  state.sel=0;
+  const ok = await triggerAnalysis(state.news, true);
+  if (ok) {
+    state.demo='';
+    buildTabs();
+  } else {
+    state.news=prev;
+  }
 }
+
 $('#go').addEventListener('click',submit);
 $('#form').addEventListener('submit',e=>{e.preventDefault();submit()});
-$('#conf').addEventListener('input',e=>{state.minConf=e.target.value/100;$('#confv').textContent=state.minConf.toFixed(2);render()});
+$('#conf').addEventListener('input',e=>{
+  state.minConf=e.target.value/100;
+  $('#confv').textContent=state.minConf.toFixed(2);
+  if (state.backendRaw) {
+    const adapted = adaptBackendResponse(state.backendRaw, state.minConf);
+    renderUI(adapted);
+  } else if (state.news) {
+    const localR = analyze(state.news);
+    if (localR) renderUI(localR);
+  }
+});
 $('#theme').addEventListener('click',()=>{
   const n=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('ig-theme',n)}catch(e){}
 });
 document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>{
   document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('on'));a.classList.add('on')}));
-buildTabs();render();
+
+buildTabs();
+triggerAnalysis(state.news, false);
 </script>
 </body>
 </html>

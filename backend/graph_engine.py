@@ -100,9 +100,22 @@ def analyze(news: str):
     for p, text in zip(top, llm.explain(top)): p["explanation"] = text
 
     assets = [{"name": n, "type": G.nodes[n]["type"], "impact": p["impact"],
-               "score": round(p["impact"] * p["confidence"], 3), "confidence": p["confidence"]}
+               "score": round(p["impact"] * p["confidence"], 3), "confidence": p["confidence"],
+               "path": p}
               for n, p in best.items()]
     assets.sort(key=lambda a: -abs(a["score"]))
+
+    pos_count = sum(1 for a in assets if a["impact"] > 0)
+    neg_count = sum(1 for a in assets if a["impact"] < 0)
+    avg_conf = round(sum(p["confidence"] for p in top) / max(1, len(top)), 3) if top else 0.0
+
+    kpis = {
+        "assets_affected": len(assets),
+        "chains_traced": len(all_paths),
+        "avg_confidence": avg_conf,
+        "positive": pos_count,
+        "negative": neg_count,
+    }
 
     EVENTS.append({"headline": ev.get("headline"), "start": start})
     reach = {start} | {s["to"] for p in top for s in p["steps"]} | {s["from"] for p in top for s in p["steps"]}
@@ -112,6 +125,22 @@ def analyze(news: str):
         "nodes": [{"id": n, **d} for n, d in sub.nodes(data=True)],
         "edges": [{"source": s, "target": t, **d} for s, t, d in sub.edges(data=True)],
         "top_paths": top, "affected_assets": assets,
+        "kpis": kpis,
         "disclaimer": "Plausible impact chains, not predictions. Correlation is not causation.",
+        "graph_size": {"nodes": G.number_of_nodes(), "edges": G.number_of_edges(), "events": len(EVENTS)},
+        "mode": ex.get("_mode", "fallback"),
+    }
+
+def reset():
+    global G, EVENTS
+    G.clear()
+    EVENTS.clear()
+    load_knowledge()
+    return {"status": "reset", "nodes": G.number_of_nodes(), "edges": G.number_of_edges()}
+
+def get_graph():
+    return {
+        "nodes": [{"id": n, **d} for n, d in G.nodes(data=True)],
+        "edges": [{"source": s, "target": t, **d} for s, t, d in G.edges(data=True)],
         "graph_size": {"nodes": G.number_of_nodes(), "edges": G.number_of_edges(), "events": len(EVENTS)},
     }

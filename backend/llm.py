@@ -47,10 +47,14 @@ def extract(news: str, alias_map: dict):
         try:
             r = c.messages.create(model=MODEL, max_tokens=1200, messages=[
                 {"role":"user","content":EXTRACT_PROMPT.format(types=EVENT_TYPES, news=news)}])
-            return _json(r.content[0].text)
+            data = _json(r.content[0].text)
+            data["_mode"] = "llm"
+            return data
         except Exception as e:
             print("LLM extract failed, using fallback:", e)
-    return _fallback_extract(news, alias_map)
+    res = _fallback_extract(news, alias_map)
+    res["_mode"] = "fallback"
+    return res
 
 def _fallback_extract(news, alias_map):
     low = news.lower()

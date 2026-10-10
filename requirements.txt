@@ -5,3 +5,4 @@ pandas
 yfinance
 anthropic
 python-dotenv
+pytest
