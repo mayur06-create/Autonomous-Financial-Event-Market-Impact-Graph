@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Impact Graph</title>
+<script src="https://unpkg.com/force-graph@1.43.5/dist/force-graph.min.js"></script>
+<style>
+:root{--bg:#0f1419;--panel:#171d25;--line:#2a3441;--txt:#e6edf3;--mut:#8b98a5;--up:#2ecc71;--down:#e74c3c;--acc:#4da3ff}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);height:100vh;display:grid;grid-template-columns:1fr 380px;grid-template-rows:auto 1fr}
+header{grid-column:1/3;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+header h1{font-size:16px;margin:0 12px 0 0;white-space:nowrap}
+textarea{flex:1;height:44px;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;resize:none}
+button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:600;cursor:pointer}
+button.ghost{background:var(--panel);border:1px solid var(--line);color:var(--txt);font-weight:400;padding:6px 10px;font-size:12px}
+#graph{position:relative;overflow:hidden}
+#legend{position:absolute;left:12px;bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;line-height:1.7}
+#legend span.k{display:inline-block;width:26px;border-top:2px solid var(--txt);vertical-align:middle;margin-right:6px}
+#ctrl{position:absolute;right:12px;top:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px}
+aside{border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:14px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:16px 0 8px}
+.card{border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;font-size:13px;cursor:pointer}
+.card:hover{border-color:var(--acc)}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--line)}
+.bar{height:6px;border-radius:3px;display:inline-block;vertical-align:middle;margin-left:8px}
+.pill{font-size:10px;padding:2px 6px;border-radius:10px;border:1px solid var(--line);color:var(--mut)}
+.up{color:var(--up)}.down{color:var(--down)}.mut{color:var(--mut);font-size:12px}
+#disc{margin-top:14px;padding:8px;border-left:3px solid #f1c40f;background:#f1c40f14;font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+</style></head><body>
+<header>
+  <h1>Market Impact Graph</h1>
+  <textarea id="news" placeholder="Paste financial news… e.g. Brent crude surges 12% after Middle East supply disruption"></textarea>
+  <button id="go">Analyze</button>
+</header>
+<div id="graph">
+  <div id="ctrl">Min confidence <input type="range" id="thr" min="0" max="90" value="0"> <span id="thrv">0.00</span><br>
+    <label><input type="checkbox" id="hideinf"> hide inferred edges</label></div>
+  <div id="legend"><div><span class="k"></span>Observed (in news)</div>
+    <div><span class="k" style="border-top-style:dashed"></span>Knowledge rule</div>
+    <div><span class="k" style="border-top-style:dotted"></span>LLM-inferred</div>
+    <div><span style="color:var(--up)">●</span> positive &nbsp;<span style="color:var(--down)">●</span> negative impact</div></div>
+</div>
+<aside>
+  <div class="chips" id="samples"></div>
+  <div id="out" class="mut" style="margin-top:12px">Run an analysis to see impact chains.</div>
+</aside>
+<script>
+const SAMPLES=["Brent crude surges 12% after Middle East supply disruption","RBI hikes repo rate by 25 bps to curb inflation","Rupee falls sharply against the dollar","Crude oil falls 8% as OPEC raises output"];
+const $=id=>document.getElementById(id);
+SAMPLES.forEach(s=>{const b=document.createElement("button");b.className="ghost";b.textContent=s.slice(0,34)+"…";b.onclick=()=>{$("news").value=s;run()};$("samples").appendChild(b)});
+let data=null, hl=new Set(), hlNodes=new Set();
+const fg=ForceGraph()($("graph")).backgroundColor("#0f1419")
+  .nodeId("id").nodeRelSize(6)
+  .linkDirectionalArrowLength(5).linkDirectionalArrowRelPos(1)
+  .linkWidth(l=>(hl.has(l.key)?3:1)+l.confidence*2)
+  .linkColor(l=>hl.size&&!hl.has(l.key)?"#2a3441":(l.sign>0?"#2ecc71":"#e74c3c"))
+  .linkLineDash(l=>l.evidence_type==="knowledge"?[6,3]:l.evidence_type==="inferred"?[2,3]:null)
+  .nodeCanvasObject((n,ctx,k)=>{
+    const r=n.id===data.start_node?9:6, dim=hlNodes.size&&!hlNodes.has(n.id);
+    ctx.globalAlpha=dim?0.2:1;
+    ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.fillStyle=n.color;ctx.fill();
+    if(n.id===data.start_node){ctx.lineWidth=2;ctx.strokeStyle="#fff";ctx.stroke()}
+    ctx.font=`${11/k}px sans-serif`;ctx.fillStyle="#e6edf3";ctx.textAlign="center";ctx.fillText(n.id,n.x,n.y+r+10/k);
+    ctx.globalAlpha=1})
+  .onNodeClick(n=>showNode(n)).onLinkClick(l=>showEdge(l));
+const COL={Company:"#4da3ff",Sector:"#a78bfa",Commodity:"#f59e0b",Indicator:"#14b8a6",Index:"#ec4899",Currency:"#84cc16",Unknown:"#8b98a5"};
+function size(){fg.width($("graph").clientWidth).height($("graph").clientHeight)}addEventListener("resize",size);size();
+
+async function run(){
+  const text=$("news").value.trim(); if(!text)return;
+  $("go").textContent="Analyzing…";
+  try{
+    const r=await fetch("/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});
+    data=await r.json();
+    if(data.error){$("out").textContent=data.error;return}
+    data.nodes.forEach(n=>n.color=COL[n.type]||COL.Unknown);
+    data.edges.forEach(e=>e.key=e.source+">"+e.target);
+    hl=new Set();hlNodes=new Set();render();render_panel();
+  }catch(e){$("out").textContent="Error: "+e}finally{$("go").textContent="Analyze"}
+}
+function render(){
+  const thr=$("thr").value/100, hide=$("hideinf").checked;
+  $("thrv").textContent=thr.toFixed(2);
+  const edges=data.edges.filter(e=>e.confidence>=thr&&!(hide&&e.evidence_type==="inferred"))
+    .map(e=>({...e,source:e.source.id||e.source,target:e.target.id||e.target}));
+  fg.graphData({nodes:data.nodes,links:edges});
+}
+$("thr").oninput=()=>data&&render();$("hideinf").onchange=()=>data&&render();
+$("go").onclick=run;
+function pct(x){return (x*100).toFixed(0)+"%"}
+function render_panel(){
+  const ev=data.event, up=data.start_sign>0;
+  let h=`<h2>Event</h2><div class="card" style="cursor:default"><b>${ev.headline}</b><br>
+    <span class="pill">${ev.type}</span> <span class="${up?'up':'down'}">${up?'▲':'▼'} ${ev.magnitude||""}</span></div>`;
+  h+=`<h2>Impact chains (click to highlight)</h2>`;
+  data.top_paths.forEach((p,i)=>{
+    const chain=[p.steps[0].from,...p.steps.map(s=>s.to)].join(" → ");
+    h+=`<div class="card" data-i="${i}"><div><b>${chain}</b></div>
+      <div class="${p.impact>0?'up':'down'}">${p.impact>0?'▲ positive':'▼ negative'} · confidence ${pct(p.confidence)}</div>
+      <div class="mut" style="margin-top:4px">${p.explanation||""}</div>
+      <div style="margin-top:4px">${p.steps.map(s=>`<span class="pill">${s.evidence_type}</span>`).join(" ")}
+      ${p.steps.some(s=>s.counter_evidence)?'<span class="pill" style="color:#f1c40f">⚠ counter-evidence</span>':''}</div></div>`});
+  h+=`<h2>Potentially affected assets</h2>`;
+  data.affected_assets.slice(0,12).forEach(a=>{
+    h+=`<div class="row"><span>${a.name} <span class="pill">${a.type}</span></span>
+      <span class="${a.impact>0?'up':'down'}">${a.impact>0?'▲':'▼'} ${pct(a.confidence)}
+      <span class="bar" style="width:${a.confidence*60}px;background:var(--${a.impact>0?'up':'down'})"></span></span></div>`});
+  h+=`<div id="detail"></div><div id="disc">⚠ ${data.disclaimer}<br>Graph so far: ${data.graph_size.nodes} nodes · ${data.graph_size.edges} edges · ${data.graph_size.events} events merged.</div>`;
+  $("out").innerHTML=h;
+  document.querySelectorAll(".card[data-i]").forEach(c=>c.onclick=()=>highlight(data.top_paths[c.dataset.i]));
+}
+function highlight(p){
+  hl=new Set(p.steps.map(s=>s.from+">"+s.to));
+  hlNodes=new Set([p.steps[0].from,...p.steps.map(s=>s.to)]);
+  fg.linkWidth(fg.linkWidth());
+}
+function edgeHTML(e){
+  return `<h2>Edge: ${e.source.id||e.source} → ${e.target.id||e.target}</h2><div class="card" style="cursor:default">
+   <span class="pill">${e.evidence_type}</span> confidence ${pct(e.confidence)} · ${e.sign>0?"same direction (+)":"opposite direction (−)"}<br>
+   <div style="margin-top:6px">${e.reason||""}</div>
+   ${e.evidence_text?`<div class="mut" style="margin-top:6px">Quote: “${e.evidence_text}”</div>`:""}
+   ${e.correlation!==null&&e.correlation!==undefined?`<div class="mut" style="margin-top:6px">2-yr daily-return correlation: ${e.correlation}${e.counter_evidence?" (contradicts this edge)":""}. Correlation ≠ causation.</div>`:'<div class="mut" style="margin-top:6px">No time-series data available.</div>'}</div>`;
+}
+function showEdge(l){$("detail").innerHTML=edgeHTML(l);$("detail").scrollIntoView({behavior:"smooth"})}
+function showNode(n){
+  const inc=data.edges.filter(e=>(e.target.id||e.target)===n.id), out=data.edges.filter(e=>(e.source.id||e.source)===n.id);
+  $("detail").innerHTML=`<h2>Node: ${n.id}</h2><div class="card" style="cursor:default"><span class="pill">${n.type}</span>
+   <div class="mut" style="margin-top:6px">Drivers: ${inc.map(e=>e.source.id||e.source).join(", ")||"—"}<br>Affects: ${out.map(e=>e.target.id||e.target).join(", ")||"—"}</div></div>`;
+  $("detail").scrollIntoView({behavior:"smooth"});
+}
+</script></body></html>
