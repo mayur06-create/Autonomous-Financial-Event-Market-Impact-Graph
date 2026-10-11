@@ -1,0 +1,75 @@
+{
+  "meta": {"found": 6, "returned": 6, "limit": 6, "page": 1},
+  "data": [
+    {
+      "uuid": "s1-rbi-hike",
+      "title": "RBI hikes repo rate by 25 bps to curb inflation",
+      "description": "The Reserve Bank of India raised the repo rate, pressuring banks' loan growth and rate-sensitive sectors like real estate and auto.",
+      "snippet": "HDFC Bank and ICICI Bank shares fell after the announcement while analysts expect higher EMIs to dampen housing demand.",
+      "url": "https://example.com/rbi-hike", "source": "example.com",
+      "published_at": "2026-10-01T09:30:00.000000Z",
+      "entities": [
+        {"symbol": "HDB", "name": "HDFC Bank", "industry": "Financial Services", "type": "equity", "country": "in", "sentiment_score": -0.35},
+        {"symbol": "IBN", "name": "ICICI Bank", "industry": "Financial Services", "type": "equity", "country": "in", "sentiment_score": -0.30}
+      ]
+    },
+    {
+      "uuid": "s2-crude-surge",
+      "title": "Crude oil surges past $95 as OPEC+ extends output cuts",
+      "description": "Higher crude prices raise input costs for airlines and paint makers while benefiting upstream oil producers.",
+      "snippet": "Reliance Industries and ONGC gained while IndiGo slipped on fuel cost worries.",
+      "url": "https://example.com/oil-surge", "source": "example.com",
+      "published_at": "2026-10-03T11:00:00.000000Z",
+      "entities": [
+        {"symbol": "RELIANCE.NS", "name": "Reliance Industries", "industry": "Energy", "type": "equity", "country": "in", "sentiment_score": 0.45},
+        {"symbol": "INDIGO.NS", "name": "InterGlobe Aviation", "industry": "Industrials", "type": "equity", "country": "in", "sentiment_score": -0.5}
+      ]
+    },
+    {
+      "uuid": "s3-inflation",
+      "title": "India retail inflation rises to 6.2% in September, above RBI target",
+      "description": "Food and fuel prices pushed consumer inflation higher, squeezing margins of packaged-goods makers and raising odds of tighter policy.",
+      "snippet": "FMCG stocks such as Hindustan Unilever and Nestle India slid as input costs climbed.",
+      "url": "https://example.com/inflation", "source": "example.com",
+      "published_at": "2026-10-05T10:15:00.000000Z",
+      "entities": [
+        {"symbol": "HINDUNILVR.NS", "name": "Hindustan Unilever", "industry": "Consumer Defensive", "type": "equity", "country": "in", "sentiment_score": -0.4},
+        {"symbol": "NESTLEIND.NS", "name": "Nestle India", "industry": "Consumer Defensive", "type": "equity", "country": "in", "sentiment_score": -0.3}
+      ]
+    },
+    {
+      "uuid": "s4-rbi-pause",
+      "title": "RBI keeps repo rate unchanged, signals pause after earlier hike",
+      "description": "Central bank holds rates steady, easing pressure on banks and real estate after last week's tightening.",
+      "snippet": "Banking stocks rebounded and realty indices rose as markets priced in an end to the hiking cycle.",
+      "url": "https://example.com/rbi-pause", "source": "example.com",
+      "published_at": "2026-10-08T09:30:00.000000Z",
+      "entities": [
+        {"symbol": "HDB", "name": "HDFC Bank", "industry": "Financial Services", "type": "equity", "country": "in", "sentiment_score": 0.4}
+      ]
+    },
+    {
+      "uuid": "s5-crude-drop",
+      "title": "Crude oil slides 4% as demand worries and rising US inventories weigh",
+      "description": "Lower crude prices cut fuel costs for airlines and paint makers but weigh on upstream oil producers.",
+      "snippet": "IndiGo and Asian Paints advanced while ONGC and Reliance Industries edged lower.",
+      "url": "https://example.com/oil-drop", "source": "example.com",
+      "published_at": "2026-10-09T08:45:00.000000Z",
+      "entities": [
+        {"symbol": "INDIGO.NS", "name": "InterGlobe Aviation", "industry": "Industrials", "type": "equity", "country": "in", "sentiment_score": 0.45},
+        {"symbol": "ONGC.NS", "name": "ONGC", "industry": "Energy", "type": "equity", "country": "in", "sentiment_score": -0.3}
+      ]
+    },
+    {
+      "uuid": "s6-infosys",
+      "title": "Infosys beats estimates as Q2 profit jumps 9%; raises FY27 guidance",
+      "description": "Strong deal wins and stable margins lifted quarterly earnings, boosting sentiment across the IT services sector.",
+      "snippet": "TCS and Wipro shares rose in sympathy.",
+      "url": "https://example.com/infosys", "source": "example.com",
+      "published_at": "2026-10-10T07:30:00.000000Z",
+      "entities": [
+        {"symbol": "INFY", "name": "Infosys", "industry": "Technology", "type": "equity", "country": "in", "sentiment_score": 0.6}
+      ]
+    }
+  ]
+}
