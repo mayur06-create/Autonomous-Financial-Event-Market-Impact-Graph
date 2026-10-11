@@ -1,0 +1,557 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "Curated causal seed graph for Indian macro/market impact analysis.",
+    "themes": [
+      "1. Crude Oil → OMCs, Aviation, Paints, Logistics",
+      "2. Inflation → RBI Rate Expectations → Repo Rate",
+      "3. Interest Rates → Banks, Real Estate, Auto, Credit",
+      "4. INR (USD/INR rate) → Importers vs Exporters",
+      "5. Global Events → FPI Flows → Indian Markets"
+    ],
+    "sign_convention": "'+' means source↑ → target↑. '−' means source↑ → target↓. '?' means ambiguous.",
+    "inr_convention": "The 'inr' node tracks USD/INR spot rate. Higher value = weaker rupee / INR depreciation.",
+    "strength_note": "strength_range = [min, max] weights on [0,1]. Wide range = high uncertainty.",
+    "omc_note": "OMC impact is intentionally wide-ranged [0.10, 0.60] because the Indian govt may absorb crude shocks (fuel price freeze), especially near elections. Mark as ambiguous.",
+    "source_ref_note": "TODO: verify source markers indicate estimates needing peer-reviewed validation."
+  },
+
+  "nodes": [
+    {"id": "crude_oil",            "label": "Crude Oil (Brent)",             "type": "commodity",  "description": "Brent crude oil price in USD/bbl. India imports ~85% of crude needs.",                                    "ticker": "BZ=F"},
+    {"id": "atf",                  "label": "Aviation Turbine Fuel",         "type": "commodity",  "description": "Jet fuel; tracks crude closely. ~30-35% of airline opex.",                                                "ticker": null},
+    {"id": "natural_gas",          "label": "Natural Gas",                   "type": "commodity",  "description": "Domestic + imported LNG prices. Used in fertilizer, power, industry.",                                    "ticker": "NG=F"},
+    {"id": "gold",                 "label": "Gold (Domestic INR)",           "type": "commodity",  "description": "MCX gold in INR. Domestic price = global USD price × USD/INR.",                                          "ticker": "GC=F"},
+    {"id": "inflation_cpi",        "label": "CPI Inflation",                 "type": "indicator",  "description": "India CPI YoY %. RBI tolerance band 2-6%, target 4%.",                                                   "ticker": null},
+    {"id": "core_inflation",       "label": "Core Inflation",                "type": "indicator",  "description": "CPI ex food & fuel. Key signal for RBI since it's stickier.",                                            "ticker": null},
+    {"id": "food_inflation",       "label": "Food Inflation",                "type": "indicator",  "description": "Food & beverages CPI component. Volatile; major driver of headline CPI in India.",                       "ticker": null},
+    {"id": "current_account_deficit","label": "Current Account Deficit",     "type": "indicator",  "description": "CAD as % of GDP. Crude oil is the single largest import item (~40% of merchandise imports).",            "ticker": null},
+    {"id": "gdp_growth",           "label": "GDP Growth",                    "type": "indicator",  "description": "India real GDP growth rate YoY. RBI growth-inflation trade-off.",                                        "ticker": null},
+    {"id": "credit_growth",        "label": "Bank Credit Growth",            "type": "indicator",  "description": "Non-food bank credit growth YoY. Indicator of economic activity.",                                       "ticker": null},
+    {"id": "rbi_rate_expectations","label": "RBI Rate Expectations",         "type": "indicator",  "description": "Market-implied future repo rate path via OIS curve. Forward-looking.",                                    "ticker": null},
+    {"id": "fpi_flows",            "label": "FPI Equity Flows",              "type": "indicator",  "description": "Net Foreign Portfolio Investor flows into Indian equities (Rs crore). Key INR driver.",                  "ticker": null},
+    {"id": "geopolitical_risk",    "label": "Geopolitical Risk",             "type": "indicator",  "description": "War, sanctions, conflict. Raises risk premium on oil and triggers risk-off EM asset sell.",              "ticker": null},
+    {"id": "repo_rate",            "label": "Repo Rate",                     "type": "policy",     "description": "RBI's benchmark overnight lending rate to banks. Primary monetary policy tool.",                         "ticker": null},
+    {"id": "rbi_intervention",     "label": "RBI FX Intervention",           "type": "policy",     "description": "RBI buys/sells USD in spot/fwd markets to manage INR volatility. FX reserves: ~$688B (2024).",           "ticker": null},
+    {"id": "opec_production",      "label": "OPEC+ Production Decision",     "type": "policy",     "description": "OPEC+ collective output cuts/increases directly set global crude supply.",                               "ticker": null},
+    {"id": "us_fed_rate",          "label": "US Fed Funds Rate",             "type": "policy",     "description": "US Federal Reserve policy rate — global risk-free benchmark. Drives EM capital flows.",                 "ticker": null},
+    {"id": "inr",                  "label": "INR/USD Rate",                  "type": "instrument", "description": "USD/INR spot rate. Higher = weaker rupee. RBI intervenes to prevent disorderly moves.",                  "ticker": "USDINR=X"},
+    {"id": "nifty50",              "label": "Nifty 50",                      "type": "instrument", "description": "NSE benchmark large-cap index. ~25% weight in financial services.",                                      "ticker": "^NSEI"},
+    {"id": "nifty_bank",           "label": "Nifty Bank",                    "type": "instrument", "description": "NSE banking index: HDFC, ICICI, SBI, Kotak, Axis, IndusInd. Rate-sensitive.",                           "ticker": "^NSEBANK"},
+    {"id": "g_sec_10y",            "label": "10-Year G-Sec Yield",           "type": "instrument", "description": "Indian government benchmark bond yield. Inverse of bond price. Benchmark for long rates.",               "ticker": null},
+    {"id": "us_dollar_index",      "label": "US Dollar Index (DXY)",         "type": "instrument", "description": "Broad USD strength vs basket. Inverse relationship with commodities and EM assets.",                    "ticker": "DX-Y.NYB"},
+    {"id": "omc_sector",           "label": "Oil Marketing Companies",       "type": "sector",     "description": "BPCL, HPCL, IOC. Refine and retail petroleum products. Govt may cap retail prices — wide uncertainty.",  "ticker": "BPCL.NS"},
+    {"id": "aviation_sector",      "label": "Aviation Sector",               "type": "sector",     "description": "IndiGo (dominant, 60%+ market share), Air India, SpiceJet. ATF is 30-35% of opex.",                   "ticker": "INDIGO.NS"},
+    {"id": "paint_sector",         "label": "Paints & Coatings",             "type": "sector",     "description": "Asian Paints, Berger, Kansai Nerolac. ~35-40% raw materials are crude derivatives (TiO2, solvents).",   "ticker": "ASIANPAINT.NS"},
+    {"id": "logistics_sector",     "label": "Logistics & Transport",         "type": "sector",     "description": "Blue Dart, GATI, VRL Logistics. Diesel/fuel is ~25-30% of opex.",                                      "ticker": "BLUEDART.NS"},
+    {"id": "it_sector",            "label": "IT Sector",                     "type": "sector",     "description": "TCS, Infosys, Wipro, HCL Tech. USD revenues, INR cost base → net beneficiary of INR depreciation.",     "ticker": "^CNXIT"},
+    {"id": "pharma_sector",        "label": "Pharma Sector",                 "type": "sector",     "description": "Sun Pharma, Dr. Reddy's, Cipla. Significant USD export (US generics). INR depreciation positive.",       "ticker": "^CNXPHARMA"},
+    {"id": "real_estate_sector",   "label": "Real Estate",                   "type": "sector",     "description": "DLF, Godrej Properties, Prestige. Highly rate-sensitive; EMI rises with repo rate.",                    "ticker": "DLF.NS"},
+    {"id": "auto_sector",          "label": "Automobile Sector",             "type": "sector",     "description": "Maruti, M&M, Tata Motors. Retail credit ~70% of two-wheeler sales; rate-sensitive.",                    "ticker": "MARUTI.NS"},
+    {"id": "fmcg_sector",          "label": "FMCG Sector",                   "type": "sector",     "description": "HUL, Nestle, Dabur, ITC. Rural demand sensitive; some imported inputs (palm oil).",                      "ticker": "HINDUNILVR.NS"},
+    {"id": "banking_sector",       "label": "Banking Sector",                "type": "sector",     "description": "PSU + private banks. NIM is key metric; short-term rate hike impact on NIM is ambiguous.",               "ticker": "^NSEBANK"},
+    {"id": "metal_sector",         "label": "Metals & Mining",               "type": "sector",     "description": "Hindalco, Tata Steel, Vedanta, JSW. Mixed: energy cost rises but export realizations also improve.",      "ticker": "HINDALCO.NS"}
+  ],
+
+  "edges": [
+    {
+      "id": "e001", "source": "opec_production", "target": "crude_oil",
+      "sign": "+", "strength_range": [0.70, 0.90], "lag": "immediate",
+      "reasoning": "OPEC+ production cuts directly reduce global crude supply, raising Brent price. Historical impact of 2022 2Mbpd cut was ~$8-15/bbl.",
+      "source_ref": "IEA Oil Market Report 2022; Goldman Sachs commodity research"
+    },
+    {
+      "id": "e002", "source": "geopolitical_risk", "target": "crude_oil",
+      "sign": "+", "strength_range": [0.50, 0.85], "lag": "immediate",
+      "reasoning": "War/sanctions disrupt oil supply chains and add a risk premium. Russia-Ukraine 2022 added ~$15-20/bbl geopolitical premium initially.",
+      "source_ref": "IMF World Economic Outlook Apr 2022; TODO: verify peak premium figure"
+    },
+    {
+      "id": "e003", "source": "us_dollar_index", "target": "crude_oil",
+      "sign": "-", "strength_range": [0.30, 0.60], "lag": "short",
+      "reasoning": "Crude is priced in USD. Strong dollar makes oil expensive for non-USD buyers, suppressing demand and price. Correlation is inverse but noisy (~-0.4 to -0.6 rolling).",
+      "source_ref": "Yousefi & Wirjanto (2004); TODO: verify with recent 2020-2024 data"
+    },
+    {
+      "id": "e004", "source": "crude_oil", "target": "atf",
+      "sign": "+", "strength_range": [0.85, 0.95], "lag": "immediate",
+      "reasoning": "ATF is a direct crude derivative (kerosene fraction). ATF price tracks crude with ~85-95% correlation. IOCL/BPCL revise ATF prices fortnightly.",
+      "source_ref": "PPAC (Petroleum Planning & Analysis Cell) ATF pricing circulars"
+    },
+    {
+      "id": "e005", "source": "crude_oil", "target": "omc_sector",
+      "sign": "?", "strength_range": [0.10, 0.60], "lag": "short",
+      "reasoning": "AMBIGUOUS: OMCs buy crude and sell refined products. If govt allows price pass-through, higher crude = lower OMC margins (negative). If govt freezes retail prices, OMCs absorb losses (more negative). If crude falls, margins expand. Historical pattern shows govt often freezes prices near elections. Intentionally wide range.",
+      "source_ref": "CRISIL Research OMC margin analysis 2022; Ministry of Petroleum press releases"
+    },
+    {
+      "id": "e006", "source": "crude_oil", "target": "paint_sector",
+      "sign": "-", "strength_range": [0.30, 0.55], "lag": "short",
+      "reasoning": "Paints use ~35-40% crude derivatives in raw materials: titanium dioxide (from ilmenite/petroleum), solvents, phthalic anhydride. Higher crude → higher input costs → margin pressure unless volume allows price hikes.",
+      "source_ref": "Asian Paints Annual Report 2022-23 (raw material cost breakdown)"
+    },
+    {
+      "id": "e007", "source": "crude_oil", "target": "logistics_sector",
+      "sign": "-", "strength_range": [0.40, 0.65], "lag": "short",
+      "reasoning": "Diesel is the primary fuel for surface freight. Fuel constitutes ~25-30% of logistics opex. Companies often pass through via fuel surcharges but with a lag.",
+      "source_ref": "CII Logistics Cost Report 2022; TODO: verify exact fuel cost % by sub-segment"
+    },
+    {
+      "id": "e008", "source": "atf", "target": "aviation_sector",
+      "sign": "-", "strength_range": [0.50, 0.75], "lag": "short",
+      "reasoning": "ATF is ~30-35% of airline opex. A 10% rise in ATF with no yield increase compresses EBITDA margin by ~3-4 ppts for a typical Indian carrier (IndiGo). Short-haul LCC model has less hedging than long-haul carriers.",
+      "source_ref": "IndiGo FY23 Annual Report (cost per available seat km); IATA cost analysis"
+    },
+    {
+      "id": "e009", "source": "crude_oil", "target": "inflation_cpi",
+      "sign": "+", "strength_range": [0.40, 0.65], "lag": "short",
+      "reasoning": "Crude feeds into CPI via fuel & light sub-index and transport costs. Every $10/bbl crude rise adds ~25-35 bps to India CPI (RBI working paper estimate). Effect is larger if retail fuel prices are revised.",
+      "source_ref": "RBI Working Paper WPS (DEPR): 01/2022 — Oil Price Pass-Through"
+    },
+    {
+      "id": "e010", "source": "crude_oil", "target": "current_account_deficit",
+      "sign": "+", "strength_range": [0.60, 0.80], "lag": "short",
+      "reasoning": "Crude oil is India's largest import item (~$130B/year). Every $10/bbl rise widens annual CAD by ~$12-15B. This is a dominant structural relationship for India.",
+      "source_ref": "RBI Annual Report 2023; Ministry of Commerce trade data"
+    },
+    {
+      "id": "e011", "source": "crude_oil", "target": "metal_sector",
+      "sign": "-", "strength_range": [0.20, 0.45], "lag": "short",
+      "reasoning": "Metals sector uses significant energy (electricity from gas/coal, and crude for logistics). Higher energy costs compress margins. Coking coal is separate but energy complex is correlated. Effect is partial and mixed with export-side benefits for some metals.",
+      "source_ref": "TODO: verify metal sector energy cost % from CRISIL or company reports"
+    },
+    {
+      "id": "e012", "source": "crude_oil", "target": "natural_gas",
+      "sign": "+", "strength_range": [0.25, 0.55], "lag": "short",
+      "reasoning": "Energy complex correlation: crude and gas have partial substitutability in some industrial uses. LNG contract pricing often indexed to crude (JCC pricing in Asia). Correlation varies by region and time.",
+      "source_ref": "IEA Gas Market Report 2023; TODO: verify current LNG-crude linkage post-2021"
+    },
+    {
+      "id": "e013", "source": "food_inflation", "target": "inflation_cpi",
+      "sign": "+", "strength_range": [0.50, 0.75], "lag": "immediate",
+      "reasoning": "Food & beverages has ~45% weight in India's CPI basket. A sharp food price spike (e.g., tomato +300% in Aug 2023) can single-handedly push headline CPI above the 6% upper band.",
+      "source_ref": "MOSPI CPI basket weights 2012 base; RBI MPC minutes Aug 2023"
+    },
+    {
+      "id": "e014", "source": "natural_gas", "target": "inflation_cpi",
+      "sign": "+", "strength_range": [0.20, 0.45], "lag": "short",
+      "reasoning": "Gas price rise passes through to electricity tariffs (gas-based power plants), fertilizer costs (urea production), and PNG/CNG prices. Indirect but real channel.",
+      "source_ref": "TODO: quantify gas-to-CPI pass-through for India; PPAC data"
+    },
+    {
+      "id": "e015", "source": "inflation_cpi", "target": "rbi_rate_expectations",
+      "sign": "+", "strength_range": [0.60, 0.85], "lag": "short",
+      "reasoning": "Above-target inflation is the primary trigger for RBI hawkishness. OIS market immediately reprices rate expectations when CPI prints above consensus. The MPC mandate requires action above 6%.",
+      "source_ref": "RBI MPC meeting minutes 2022-23; Bloomberg OIS data"
+    },
+    {
+      "id": "e016", "source": "core_inflation", "target": "rbi_rate_expectations",
+      "sign": "+", "strength_range": [0.70, 0.90], "lag": "short",
+      "reasoning": "Core inflation (ex food & fuel) is stickier and more policy-relevant to the RBI than volatile food prices. High core CPI signals demand-pull inflation requiring monetary response.",
+      "source_ref": "RBI Governor Das speeches 2022-23; CRISIL macro research"
+    },
+    {
+      "id": "e017", "source": "rbi_rate_expectations", "target": "repo_rate",
+      "sign": "+", "strength_range": [0.50, 0.80], "lag": "long",
+      "reasoning": "Market rate expectations (OIS-priced) generally lead actual RBI action by 1-2 MPC meetings (roughly 2-4 months). RBI rarely surprises significantly vs expectations. The link is strong but lagged.",
+      "source_ref": "Reserve Bank of India — Monetary Policy Reports"
+    },
+    {
+      "id": "e018", "source": "inflation_cpi", "target": "g_sec_10y",
+      "sign": "+", "strength_range": [0.50, 0.75], "lag": "short",
+      "reasoning": "Bond yields price in inflation expectations. Higher CPI → higher expected nominal yields → G-sec sell-off (yield rises). Real yield = nominal yield − inflation; market adjusts to maintain positive real yield.",
+      "source_ref": "CCIL (Clearing Corporation of India) bond market data"
+    },
+    {
+      "id": "e019", "source": "inflation_cpi", "target": "fmcg_sector",
+      "sign": "-", "strength_range": [0.30, 0.55], "lag": "short",
+      "reasoning": "High food inflation squeezes real rural income, dampening FMCG volume growth (especially value-for-money rural SKUs). HUL and Dabur have historically seen rural volume pressure when food CPI > 8%.",
+      "source_ref": "HUL investor presentations; CRISIL Consumer sector report 2023"
+    },
+    {
+      "id": "e020", "source": "inflation_cpi", "target": "gdp_growth",
+      "sign": "-", "strength_range": [0.20, 0.50], "lag": "long",
+      "reasoning": "High inflation erodes purchasing power, forces RBI to hike rates (tightening financial conditions), and compresses corporate margins — all of which drag real GDP growth over a 1-3 quarter horizon.",
+      "source_ref": "IMF and RBI research on inflation-growth nexus; TODO: verify India-specific elasticity"
+    },
+    {
+      "id": "e021", "source": "repo_rate", "target": "g_sec_10y",
+      "sign": "+", "strength_range": [0.70, 0.90], "lag": "immediate",
+      "reasoning": "Repo rate is the short-end anchor. A rate hike compresses the short end, and market expectations transmit to the long end via term premium re-pricing. 10-year yield typically rises 5-12 bps per 25 bps hike in India.",
+      "source_ref": "RBI G-sec auction data; historical MPC hike outcomes 2022-23"
+    },
+    {
+      "id": "e022", "source": "repo_rate", "target": "inr",
+      "sign": "-", "strength_range": [0.30, 0.60], "lag": "short",
+      "reasoning": "Higher repo rate → higher real interest rate differential vs US → FPI carry trade inflows → rupee appreciation (USD/INR falls). Effect is real but competes with macro fundamentals (CAD, risk sentiment).",
+      "source_ref": "RBI Annual Report; TODO: verify magnitude of rate-INR sensitivity empirically"
+    },
+    {
+      "id": "e023", "source": "repo_rate", "target": "nifty_bank",
+      "sign": "-", "strength_range": [0.40, 0.70], "lag": "short",
+      "reasoning": "Rate hikes compress near-term bank NIM (cost of deposits reprices faster than loan book in first 2 qtrs). Also raises fear of asset quality stress from over-leveraged borrowers. Nifty Bank typically underperforms on rate hike days.",
+      "source_ref": "NSE historical data; HDFC Bank, ICICI Bank earnings calls 2022-23"
+    },
+    {
+      "id": "e024", "source": "repo_rate", "target": "banking_sector",
+      "sign": "?", "strength_range": [0.20, 0.50], "lag": "short",
+      "reasoning": "AMBIGUOUS short-term: rate hike raises loan yields (positive for NIM), but deposit repricing lag means NIM first compresses then expands. Longer term: higher rates help banks with floating rate assets. Impact depends on CASA ratio and loan mix.",
+      "source_ref": "RBI Report on Trend and Progress of Banking in India 2022-23"
+    },
+    {
+      "id": "e025", "source": "repo_rate", "target": "real_estate_sector",
+      "sign": "-", "strength_range": [0.50, 0.75], "lag": "short",
+      "reasoning": "Home loans are the primary debt instrument for real estate purchases. A 25 bps hike raises EMI on Rs 50L loan by ~Rs 750-900/month, dampening affordability. Residential demand is highly rate-elastic, especially in mid-income segment.",
+      "source_ref": "NHB (National Housing Bank) data; JLL India residential market reports"
+    },
+    {
+      "id": "e026", "source": "repo_rate", "target": "auto_sector",
+      "sign": "-", "strength_range": [0.35, 0.60], "lag": "short",
+      "reasoning": "Retail auto credit (especially two-wheelers) is rate-sensitive. ~70% of two-wheeler and ~80% of commercial vehicle purchases are financed. Rate hike raises EMIs, dampening volume in entry/mass segments (more than premium).",
+      "source_ref": "SIAM (Society of Indian Automobile Manufacturers) data; M&M investor presentation"
+    },
+    {
+      "id": "e027", "source": "repo_rate", "target": "credit_growth",
+      "sign": "-", "strength_range": [0.40, 0.70], "lag": "short",
+      "reasoning": "Higher rates raise borrowing cost for households and corporates, reducing demand for credit. Transmission in India is faster via external benchmark-linked loans (post-2019 EBLR regime) than before.",
+      "source_ref": "RBI Annual Report 2023 (credit growth data); EBLR framework circular"
+    },
+    {
+      "id": "e028", "source": "repo_rate", "target": "nifty50",
+      "sign": "-", "strength_range": [0.30, 0.60], "lag": "short",
+      "reasoning": "Higher risk-free rate raises the discount rate for equity DCF models, compressing valuations. Also signals tighter financial conditions ahead. Index-level impact depends on sector composition (financial-heavy indices are more sensitive).",
+      "source_ref": "TODO: quantify Nifty sensitivity to repo rate changes empirically"
+    },
+    {
+      "id": "e029", "source": "credit_growth", "target": "gdp_growth",
+      "sign": "+", "strength_range": [0.40, 0.65], "lag": "long",
+      "reasoning": "Bank credit finances investment and consumption. Credit growth is a leading indicator of economic activity. The relationship is well-established but operates with a multi-quarter lag.",
+      "source_ref": "RBI Working Paper on credit-growth nexus; IMF India Article IV"
+    },
+    {
+      "id": "e030", "source": "g_sec_10y", "target": "real_estate_sector",
+      "sign": "-", "strength_range": [0.30, 0.60], "lag": "short",
+      "reasoning": "Home loan rates are benchmarked to G-sec yields (via EBLR → marginal cost of funds). Rising yields directly translate to higher home loan rates. Also raises cap rates used in commercial real estate valuation.",
+      "source_ref": "NHB housing finance data; HDFC Ltd / LIC HF presentations"
+    },
+    {
+      "id": "e031", "source": "nifty_bank", "target": "nifty50",
+      "sign": "+", "strength_range": [0.60, 0.85], "lag": "immediate",
+      "reasoning": "Banking & financial services has ~35-40% weight in Nifty 50. A move in Nifty Bank mechanically pulls Nifty 50 in the same direction with high same-session correlation (~0.85-0.90).",
+      "source_ref": "NSE index methodology; index constituent weights"
+    },
+    {
+      "id": "e032", "source": "inr", "target": "it_sector",
+      "sign": "+", "strength_range": [0.50, 0.75], "lag": "short",
+      "reasoning": "IT companies bill in USD, pay employees and infra costs in INR. INR depreciation (USD/INR rises) directly boosts INR revenue per USD contract. NASSCOM estimates ~40-50 bps EBIT margin improvement per 1% INR depreciation.",
+      "source_ref": "NASSCOM industry brief; TCS/Infosys investor presentations on currency sensitivity"
+    },
+    {
+      "id": "e033", "source": "inr", "target": "pharma_sector",
+      "sign": "+", "strength_range": [0.40, 0.65], "lag": "short",
+      "reasoning": "Pharma exports ~60-65% of revenues, primarily to the US generic drug market. INR depreciation raises INR realization per USD of exports. API sourcing costs from China are a partial offset.",
+      "source_ref": "Sun Pharma, Dr. Reddy's annual reports; Pharmexcil export data"
+    },
+    {
+      "id": "e034", "source": "inr", "target": "omc_sector",
+      "sign": "-", "strength_range": [0.40, 0.70], "lag": "short",
+      "reasoning": "OMCs import crude in USD. INR depreciation raises the INR cost of crude independently of the USD crude price. If retail fuel prices are frozen (common near elections), OMCs absorb the additional FX cost, severely compressing margins.",
+      "source_ref": "CRISIL OMC analysis 2022; HPCL, BPCL results Q2/Q3 FY23"
+    },
+    {
+      "id": "e035", "source": "inr", "target": "fmcg_sector",
+      "sign": "-", "strength_range": [0.20, 0.40], "lag": "short",
+      "reasoning": "Some FMCG inputs are imported (palm oil from Malaysia/Indonesia, packaging materials). INR depreciation raises these input costs. Effect is partial and company-specific; companies with high domestic sourcing are less exposed.",
+      "source_ref": "HUL Annual Report (raw material commentary); Dabur investor presentations"
+    },
+    {
+      "id": "e036", "source": "inr", "target": "metal_sector",
+      "sign": "+", "strength_range": [0.30, 0.55], "lag": "short",
+      "reasoning": "Indian metals companies export a portion of production (aluminium, steel). INR depreciation improves INR export realizations. Partial offset from imported coking coal costs (in USD). Net effect mildly positive for exporters.",
+      "source_ref": "Hindalco, Tata Steel annual reports; TODO: verify net currency sensitivity"
+    },
+    {
+      "id": "e037", "source": "inr", "target": "gold",
+      "sign": "+", "strength_range": [0.60, 0.80], "lag": "immediate",
+      "reasoning": "Domestic gold price (MCX) = international gold price (COMEX, USD/oz) × USD/INR. A 1% INR depreciation mechanically raises domestic gold price by ~1% (ignoring customs duty adjustments). Very tight relationship.",
+      "source_ref": "MCX vs COMEX price correlation; IBJA (India Bullion and Jewellers Association)"
+    },
+    {
+      "id": "e038", "source": "inr", "target": "current_account_deficit",
+      "sign": "+", "strength_range": [0.40, 0.65], "lag": "short",
+      "reasoning": "J-curve effect: initially, INR depreciation raises import bill in INR (crude, electronics still needed), widening CAD. Longer term (>6 months), exports become competitive and CAD may narrow. Short-run effect is negative (worsening CAD).",
+      "source_ref": "RBI CAD analysis; IMF J-curve evidence for India"
+    },
+    {
+      "id": "e039", "source": "current_account_deficit", "target": "inr",
+      "sign": "+", "strength_range": [0.40, 0.65], "lag": "short",
+      "reasoning": "Higher CAD means India demands more foreign currency (for imports) than it earns — creating structural depreciation pressure on INR (USD/INR rises). Each 1% of GDP CAD creates ~$25-30B annual dollar demand.",
+      "source_ref": "RBI Annual Report; Duvvuri Subbarao (former RBI Governor) working papers"
+    },
+    {
+      "id": "e040", "source": "fpi_flows", "target": "inr",
+      "sign": "-", "strength_range": [0.50, 0.75], "lag": "short",
+      "reasoning": "Foreign portfolio inflows bring dollars into India, increasing supply of USD in the market → rupee appreciates (USD/INR falls). Conversely, outflows drain USD supply → INR depreciates. This is the dominant short-run driver of INR.",
+      "source_ref": "SEBI FPI data; RBI Annual Report on capital account dynamics"
+    },
+    {
+      "id": "e041", "source": "rbi_intervention", "target": "inr",
+      "sign": "-", "strength_range": [0.40, 0.70], "lag": "immediate",
+      "reasoning": "RBI sells USD reserves in the spot market to stabilize INR during depreciation episodes. With $688B in reserves (2024), RBI has significant firepower. Intervention prevents disorderly depreciation but is not a policy target for the level.",
+      "source_ref": "RBI statements on FX intervention; Mint Road Communiqués"
+    },
+    {
+      "id": "e042", "source": "us_fed_rate", "target": "fpi_flows",
+      "sign": "-", "strength_range": [0.50, 0.75], "lag": "short",
+      "reasoning": "Higher US rates raise the risk-free return in USD, making EM assets relatively less attractive. FPIs reduce India equity and debt allocations → outflows. This was the dominant FPI driver in 2022 (Fed raised rates 425 bps).",
+      "source_ref": "NBER Emerging Markets paper on Fed spillovers; SEBI FPI data 2022"
+    },
+    {
+      "id": "e043", "source": "us_fed_rate", "target": "inr",
+      "sign": "+", "strength_range": [0.40, 0.70], "lag": "short",
+      "reasoning": "US rate hike → stronger USD globally (DXY rises) → INR depreciates (USD/INR rises). Also operates via FPI outflow channel (see e042 → e040). Both channels reinforce each other.",
+      "source_ref": "BIS Working Paper on Fed rate and EM currencies; RBI Annual Report 2022-23"
+    },
+    {
+      "id": "e044", "source": "geopolitical_risk", "target": "fpi_flows",
+      "sign": "-", "strength_range": [0.40, 0.70], "lag": "short",
+      "reasoning": "Global risk-off events (war, sanctions) trigger EM portfolio outflows as investors flee to safe-haven assets (US Treasuries, gold, CHF). FPIs pulled Rs 1.27L crore from Indian equities in 2022 amid global risk-off.",
+      "source_ref": "SEBI FPI data CY2022; EPFR Global fund flow data"
+    },
+    {
+      "id": "e045", "source": "fpi_flows", "target": "nifty50",
+      "sign": "+", "strength_range": [0.60, 0.80], "lag": "short",
+      "reasoning": "FPIs hold ~16-18% of NSE market cap. Large net buying/selling moves the index. On days of >Rs 5000 crore FPI buying, Nifty tends to rise 0.5-1%. The causal link is well-established but DII buying often offsets.",
+      "source_ref": "NSE FPI flow and index return data; SEBI annual report"
+    },
+    {
+      "id": "e046", "source": "fpi_flows", "target": "nifty_bank",
+      "sign": "+", "strength_range": [0.50, 0.75], "lag": "short",
+      "reasoning": "Banking stocks are among the highest FPI-held sectors (~25-30% FPI ownership in HDFC, ICICI). FPI activity disproportionately moves banking stocks vs the broader market.",
+      "source_ref": "NSE sectoral FPI holding data; BSE shareholding patterns Q4 FY23"
+    },
+    {
+      "id": "e047", "source": "us_dollar_index", "target": "fpi_flows",
+      "sign": "-", "strength_range": [0.35, 0.65], "lag": "short",
+      "reasoning": "Strong DXY reflects tightening global financial conditions, typically correlated with EM outflows. When dollar strengthens, EM currencies weaken and FPIs face FX losses on unhedged EM positions, triggering further selling.",
+      "source_ref": "IMF Global Financial Stability Report; MSCI EM vs DXY correlation analysis"
+    },
+    {
+      "id": "e048", "source": "banking_sector", "target": "nifty50",
+      "sign": "+", "strength_range": [0.30, 0.36], "lag": "immediate",
+      "reasoning": "Banking & financial services carries the highest sectoral weight (~33%) in the Nifty 50 benchmark index. Movements in major lenders directly move index levels.",
+      "source_ref": "NSE India Nifty 50 Factsheet; Index Methodology"
+    },
+    {
+      "id": "e049", "source": "banking_sector", "target": "credit_growth",
+      "sign": "+", "strength_range": [0.65, 0.80], "lag": "short",
+      "reasoning": "Banking balance sheet expansion, credit underwriting standards, and deposit mobilization directly dictate economy-wide non-food bank credit growth.",
+      "source_ref": "RBI Trends and Progress of Banking in India"
+    },
+    {
+      "id": "e050", "source": "it_sector", "target": "nifty50",
+      "sign": "+", "strength_range": [0.12, 0.16], "lag": "immediate",
+      "reasoning": "IT sector carries ~14% weight in Nifty 50. Large-cap tech earnings and deal momentum directly influence benchmark performance.",
+      "source_ref": "NSE India Sectoral Weightings"
+    },
+    {
+      "id": "e051", "source": "it_sector", "target": "fpi_flows",
+      "sign": "+", "strength_range": [0.40, 0.55], "lag": "short",
+      "reasoning": "Indian IT leaders (TCS, Infosys) have high foreign institutional shareholding (~30-40%); sector sentiment directly correlates with cross-border equity allocation.",
+      "source_ref": "BSE/NSE Shareholding Patterns; NSDL FPI monitors"
+    },
+    {
+      "id": "e052", "source": "omc_sector", "target": "nifty50",
+      "sign": "+", "strength_range": [0.08, 0.12], "lag": "immediate",
+      "reasoning": "Energy and oil & gas stocks represent ~10% of Nifty 50 benchmark index market capitalization.",
+      "source_ref": "NSE India Index Weightings"
+    },
+    {
+      "id": "e053", "source": "auto_sector", "target": "nifty50",
+      "sign": "+", "strength_range": [0.06, 0.09], "lag": "immediate",
+      "reasoning": "Automobile OEMs and auto component manufacturers constitute ~7% of Nifty 50 benchmark index.",
+      "source_ref": "NSE India Nifty 50 Methodology"
+    },
+    {
+      "id": "e054", "source": "auto_sector", "target": "metal_sector",
+      "sign": "+", "strength_range": [0.50, 0.65], "lag": "short",
+      "reasoning": "Automobile manufacturing is one of the largest industrial consumers of flat steel, aluminum casting, and alloy materials in India.",
+      "source_ref": "Indian Steel Association Automotive Demand Report"
+    },
+    {
+      "id": "e055", "source": "auto_sector", "target": "logistics_sector",
+      "sign": "+", "strength_range": [0.45, 0.60], "lag": "short",
+      "reasoning": "Commercial vehicle production, dispatch volumes, and fleet replacement demand drive transport and logistics freight capacity.",
+      "source_ref": "SIAM & Logistics Industry Association Annual Review"
+    },
+    {
+      "id": "e056", "source": "fmcg_sector", "target": "nifty50",
+      "sign": "+", "strength_range": [0.07, 0.10], "lag": "immediate",
+      "reasoning": "Fast moving consumer goods companies account for ~8% of Nifty 50 index weight.",
+      "source_ref": "NSE India Sectoral Weightings"
+    },
+    {
+      "id": "e057", "source": "fmcg_sector", "target": "gdp_growth",
+      "sign": "+", "strength_range": [0.45, 0.60], "lag": "long",
+      "reasoning": "FMCG sales volumes serve as a leading proxy for rural and urban Private Final Consumption Expenditure (PFCE), which comprises ~60% of Indian GDP.",
+      "source_ref": "MoSPI National Accounts Statistics"
+    },
+    {
+      "id": "e058", "source": "metal_sector", "target": "nifty50",
+      "sign": "+", "strength_range": [0.03, 0.05], "lag": "immediate",
+      "reasoning": "Metals and mining companies account for ~4% of Nifty 50 benchmark index.",
+      "source_ref": "NSE India Nifty 50 Methodology"
+    },
+    {
+      "id": "e059", "source": "metal_sector", "target": "auto_sector",
+      "sign": "-", "strength_range": [0.40, 0.55], "lag": "short",
+      "reasoning": "Surging domestic steel and base metal prices increase raw material and bill-of-materials costs for automobile manufacturers, compressing gross operating margins.",
+      "source_ref": "CRISIL Research Automobile OEM Cost Analysis"
+    },
+    {
+      "id": "e060", "source": "pharma_sector", "target": "nifty50",
+      "sign": "+", "strength_range": [0.03, 0.05], "lag": "immediate",
+      "reasoning": "Healthcare and pharmaceutical companies account for ~4% of Nifty 50 index weight.",
+      "source_ref": "NSE India Sectoral Weightings"
+    },
+    {
+      "id": "e061", "source": "real_estate_sector", "target": "credit_growth",
+      "sign": "+", "strength_range": [0.50, 0.65], "lag": "short",
+      "reasoning": "Residential housing launches and commercial construction activity drive long-term mortgage loan disbursements and corporate bank credit.",
+      "source_ref": "RBI Sectoral Deployment of Bank Credit"
+    },
+    {
+      "id": "e062", "source": "nifty50", "target": "fpi_flows",
+      "sign": "+", "strength_range": [0.60, 0.75], "lag": "short",
+      "reasoning": "Benchmark equity returns and emerging market momentum drive passive and active foreign portfolio equity allocations into Indian markets.",
+      "source_ref": "NSDL / SEBI FPI Monthly Bulletins"
+    },
+    {
+      "id": "e063", "source": "nifty50", "target": "credit_growth",
+      "sign": "+", "strength_range": [0.40, 0.55], "lag": "long",
+      "reasoning": "Buoyant equity valuations lower corporate cost of capital and encourage firms to undertake capex expansion funded by complementary bank borrowing.",
+      "source_ref": "RBI Financial Stability Report"
+    }
+  ],
+
+  "alias_map": {
+    "brent": "crude_oil",
+    "brent_crude": "crude_oil",
+    "wti": "crude_oil",
+    "oil": "crude_oil",
+    "petroleum": "crude_oil",
+    "crude": "crude_oil",
+    "jet_fuel": "atf",
+    "aviation_turbine_fuel": "atf",
+    "cpi": "inflation_cpi",
+    "retail_inflation": "inflation_cpi",
+    "consumer_price_index": "inflation_cpi",
+    "headline_inflation": "inflation_cpi",
+    "repo": "repo_rate",
+    "rbi_rate": "repo_rate",
+    "interest_rate": "repo_rate",
+    "policy_rate": "repo_rate",
+    "rbi": "rbi_rate_expectations",
+    "reserve_bank": "rbi_rate_expectations",
+    "mpc": "rbi_rate_expectations",
+    "rupee": "inr",
+    "indian_rupee": "inr",
+    "usd_inr": "inr",
+    "usdinr": "inr",
+    "nifty": "nifty50",
+    "nifty_50": "nifty50",
+    "sensex": "nifty50",
+    "index": "nifty50",
+    "etf": "nifty50",
+    "etfs": "nifty50",
+    "nse": "nifty50",
+    "bse": "nifty50",
+    "cash_market": "nifty50",
+    "adtv": "nifty50",
+    "f&o": "nifty50",
+    "turnover": "nifty50",
+    "banknifty": "nifty_bank",
+    "bank_nifty": "nifty_bank",
+    "nifty_bank_index": "nifty_bank",
+    "gsec": "g_sec_10y",
+    "government_securities": "g_sec_10y",
+    "bond_yield": "g_sec_10y",
+    "10_year_yield": "g_sec_10y",
+    "cad": "current_account_deficit",
+    "current_account": "current_account_deficit",
+    "it": "it_sector",
+    "information_technology": "it_sector",
+    "software": "it_sector",
+    "tech": "it_sector",
+    "tech_stocks": "it_sector",
+    "persistent": "it_sector",
+    "nagarro": "it_sector",
+    "mobikwik": "it_sector",
+    "aviation": "aviation_sector",
+    "airlines": "aviation_sector",
+    "indigo": "aviation_sector",
+    "spicejet": "aviation_sector",
+    "air_india": "aviation_sector",
+    "omc": "omc_sector",
+    "oil_marketing": "omc_sector",
+    "bpcl": "omc_sector",
+    "hpcl": "omc_sector",
+    "ioc": "omc_sector",
+    "indian_oil": "omc_sector",
+    "paints": "paint_sector",
+    "asian_paints": "paint_sector",
+    "berger": "paint_sector",
+    "logistics": "logistics_sector",
+    "blue_dart": "logistics_sector",
+    "transport": "logistics_sector",
+    "pharma": "pharma_sector",
+    "pharmaceutical": "pharma_sector",
+    "sun_pharma": "pharma_sector",
+    "dr_reddys": "pharma_sector",
+    "real_estate": "real_estate_sector",
+    "realty": "real_estate_sector",
+    "dlf": "real_estate_sector",
+    "housing": "real_estate_sector",
+    "auto": "auto_sector",
+    "automobile": "auto_sector",
+    "maruti": "auto_sector",
+    "mahindra": "auto_sector",
+    "studds": "auto_sector",
+    "two_wheeler": "auto_sector",
+    "helmets": "auto_sector",
+    "fmcg": "fmcg_sector",
+    "consumer_goods": "fmcg_sector",
+    "distribution_channels": "fmcg_sector",
+    "hul": "fmcg_sector",
+    "nestle": "fmcg_sector",
+    "dabur": "fmcg_sector",
+    "banking": "banking_sector",
+    "banks": "banking_sector",
+    "nbfc": "banking_sector",
+    "hdfc": "banking_sector",
+    "hdfc_bank": "banking_sector",
+    "hdfc_flexi_cap": "banking_sector",
+    "icici": "banking_sector",
+    "sbi": "banking_sector",
+    "metals": "metal_sector",
+    "steel": "metal_sector",
+    "aluminium": "metal_sector",
+    "hindalco": "metal_sector",
+    "tata_steel": "metal_sector",
+    "agriculture": "agri_sector",
+    "agri": "agri_sector",
+    "fed": "us_fed_rate",
+    "federal_reserve": "us_fed_rate",
+    "us_rates": "us_fed_rate",
+    "fomc": "us_fed_rate",
+    "opec": "opec_production",
+    "opec_plus": "opec_production",
+    "opec+": "opec_production",
+    "dollar": "us_dollar_index",
+    "dxy": "us_dollar_index",
+    "usd_index": "us_dollar_index",
+    "fpi": "fpi_flows",
+    "foreign_investors": "fpi_flows",
+    "fii": "fpi_flows",
+    "foreign_portfolio": "fpi_flows"
+  }
+}
