@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #─── Secrets (NEVER commit these) ───────────────────────────────────────────
 
 .env
@@ -49,3 +50,34 @@ coverage.xml
 # ─── Misc ────────────────────────────────────────────────────────────────────
 *.log
 *.tmp
+=======
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables
+.env
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+
+# Application Caches
+cache/
+.cache/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+>>>>>>> origin/main

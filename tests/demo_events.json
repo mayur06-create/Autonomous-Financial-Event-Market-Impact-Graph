@@ -1,0 +1,8 @@
+[
+ {"name":"Crude spike","news":"Brent crude surges 12% after Middle East supply disruption",
+  "start":"Crude Oil","expect":{"IndiGo":-1,"ONGC":1,"Asian Paints":-1,"BPCL":-1,"Inflation":1,"Nifty Realty":-1}},
+ {"name":"RBI repo hike","news":"RBI hikes repo rate by 25 bps to curb inflation",
+  "start":"Repo Rate","expect":{"Interest Rate Expectations":1,"DLF":-1,"Maruti Suzuki":-1,"Real Estate":-1}},
+ {"name":"Rupee depreciation","news":"Rupee falls sharply against the dollar",
+  "start":"USD/INR","expect":{"TCS":1,"Infosys":1,"IndiGo":-1,"Sun Pharma":1,"Inflation":1}}
+]

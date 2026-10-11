@@ -1,0 +1,565 @@
+{
+  "event": {
+    "type": "commodity_shock",
+    "headline": "Rupee falls sharply against the dollar",
+    "direction": "up",
+    "magnitude": null,
+    "primary_entity": "USD/INR"
+  },
+  "start_node": "USD/INR",
+  "start_sign": 1,
+  "nodes": [
+    {
+      "id": "USD/INR",
+      "type": "Currency",
+      "ticker": "INR=X"
+    },
+    {
+      "id": "Aviation",
+      "type": "Sector",
+      "ticker": null
+    },
+    {
+      "id": "Sun Pharma",
+      "type": "Company",
+      "ticker": "SUNPHARMA.NS"
+    },
+    {
+      "id": "Infosys",
+      "type": "Company",
+      "ticker": "INFY.NS"
+    },
+    {
+      "id": "BPCL",
+      "type": "Company",
+      "ticker": "BPCL.NS"
+    },
+    {
+      "id": "IndiGo",
+      "type": "Company",
+      "ticker": "INDIGO.NS"
+    },
+    {
+      "id": "Pharma",
+      "type": "Sector",
+      "ticker": null
+    },
+    {
+      "id": "Nifty IT",
+      "type": "Index",
+      "ticker": "^CNXIT"
+    },
+    {
+      "id": "Oil Marketing Cos",
+      "type": "Sector",
+      "ticker": null
+    },
+    {
+      "id": "IT Services",
+      "type": "Sector",
+      "ticker": null
+    },
+    {
+      "id": "TCS",
+      "type": "Company",
+      "ticker": "TCS.NS"
+    }
+  ],
+  "edges": [
+    {
+      "source": "USD/INR",
+      "target": "IT Services",
+      "sign": 1,
+      "confidence": 0.75,
+      "evidence_type": "knowledge",
+      "reason": "IT firms earn in USD, so a weaker rupee lifts margins",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "USD/INR",
+      "target": "Pharma",
+      "sign": 1,
+      "confidence": 0.55,
+      "evidence_type": "knowledge",
+      "reason": "Pharma exports are dollar-denominated",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "USD/INR",
+      "target": "Oil Marketing Cos",
+      "sign": -1,
+      "confidence": 0.6,
+      "evidence_type": "knowledge",
+      "reason": "Crude is bought in dollars, raising import cost",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "USD/INR",
+      "target": "Aviation",
+      "sign": -1,
+      "confidence": 0.6,
+      "evidence_type": "knowledge",
+      "reason": "Fuel, leasing and maintenance are dollar-linked",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "Aviation",
+      "target": "IndiGo",
+      "sign": 1,
+      "confidence": 0.9,
+      "evidence_type": "knowledge",
+      "reason": "IndiGo is India's largest airline by share",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "Pharma",
+      "target": "Sun Pharma",
+      "sign": 1,
+      "confidence": 0.8,
+      "evidence_type": "knowledge",
+      "reason": "Sun Pharma is a large exporter",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "Oil Marketing Cos",
+      "target": "BPCL",
+      "sign": 1,
+      "confidence": 0.85,
+      "evidence_type": "knowledge",
+      "reason": "BPCL is a major OMC",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "IT Services",
+      "target": "TCS",
+      "sign": 1,
+      "confidence": 0.85,
+      "evidence_type": "knowledge",
+      "reason": "TCS is the largest IT exporter",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "IT Services",
+      "target": "Infosys",
+      "sign": 1,
+      "confidence": 0.85,
+      "evidence_type": "knowledge",
+      "reason": "Infosys is a top-2 IT exporter",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    },
+    {
+      "source": "IT Services",
+      "target": "Nifty IT",
+      "sign": 1,
+      "confidence": 0.9,
+      "evidence_type": "knowledge",
+      "reason": "Sector is the index",
+      "evidence_text": "",
+      "correlation": null,
+      "counter_evidence": false
+    }
+  ],
+  "top_paths": [
+    {
+      "target": "Nifty IT",
+      "steps": [
+        {
+          "from": "USD/INR",
+          "to": "IT Services",
+          "sign": 1,
+          "confidence": 0.75,
+          "evidence_type": "knowledge",
+          "reason": "IT firms earn in USD, so a weaker rupee lifts margins",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        },
+        {
+          "from": "IT Services",
+          "to": "Nifty IT",
+          "sign": 1,
+          "confidence": 0.9,
+          "evidence_type": "knowledge",
+          "reason": "Sector is the index",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        }
+      ],
+      "confidence": 0.675,
+      "impact": 1,
+      "depth": 2,
+      "explanation": "USD/INR \u2192 IT Services (\u2191, knowledge, 0.75) \u2192 Nifty IT (\u2191, knowledge, 0.90). Plausible net effect on Nifty IT: positive (path confidence 0.68)."
+    },
+    {
+      "target": "TCS",
+      "steps": [
+        {
+          "from": "USD/INR",
+          "to": "IT Services",
+          "sign": 1,
+          "confidence": 0.75,
+          "evidence_type": "knowledge",
+          "reason": "IT firms earn in USD, so a weaker rupee lifts margins",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        },
+        {
+          "from": "IT Services",
+          "to": "TCS",
+          "sign": 1,
+          "confidence": 0.85,
+          "evidence_type": "knowledge",
+          "reason": "TCS is the largest IT exporter",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        }
+      ],
+      "confidence": 0.637,
+      "impact": 1,
+      "depth": 2,
+      "explanation": "USD/INR \u2192 IT Services (\u2191, knowledge, 0.75) \u2192 TCS (\u2191, knowledge, 0.85). Plausible net effect on TCS: positive (path confidence 0.64)."
+    },
+    {
+      "target": "Infosys",
+      "steps": [
+        {
+          "from": "USD/INR",
+          "to": "IT Services",
+          "sign": 1,
+          "confidence": 0.75,
+          "evidence_type": "knowledge",
+          "reason": "IT firms earn in USD, so a weaker rupee lifts margins",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        },
+        {
+          "from": "IT Services",
+          "to": "Infosys",
+          "sign": 1,
+          "confidence": 0.85,
+          "evidence_type": "knowledge",
+          "reason": "Infosys is a top-2 IT exporter",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        }
+      ],
+      "confidence": 0.637,
+      "impact": 1,
+      "depth": 2,
+      "explanation": "USD/INR \u2192 IT Services (\u2191, knowledge, 0.75) \u2192 Infosys (\u2191, knowledge, 0.85). Plausible net effect on Infosys: positive (path confidence 0.64)."
+    },
+    {
+      "target": "IndiGo",
+      "steps": [
+        {
+          "from": "USD/INR",
+          "to": "Aviation",
+          "sign": -1,
+          "confidence": 0.6,
+          "evidence_type": "knowledge",
+          "reason": "Fuel, leasing and maintenance are dollar-linked",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        },
+        {
+          "from": "Aviation",
+          "to": "IndiGo",
+          "sign": 1,
+          "confidence": 0.9,
+          "evidence_type": "knowledge",
+          "reason": "IndiGo is India's largest airline by share",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        }
+      ],
+      "confidence": 0.54,
+      "impact": -1,
+      "depth": 2,
+      "explanation": "USD/INR \u2192 Aviation (\u2193, knowledge, 0.60) \u2192 IndiGo (\u2191, knowledge, 0.90). Plausible net effect on IndiGo: negative (path confidence 0.54)."
+    },
+    {
+      "target": "BPCL",
+      "steps": [
+        {
+          "from": "USD/INR",
+          "to": "Oil Marketing Cos",
+          "sign": -1,
+          "confidence": 0.6,
+          "evidence_type": "knowledge",
+          "reason": "Crude is bought in dollars, raising import cost",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        },
+        {
+          "from": "Oil Marketing Cos",
+          "to": "BPCL",
+          "sign": 1,
+          "confidence": 0.85,
+          "evidence_type": "knowledge",
+          "reason": "BPCL is a major OMC",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        }
+      ],
+      "confidence": 0.51,
+      "impact": -1,
+      "depth": 2,
+      "explanation": "USD/INR \u2192 Oil Marketing Cos (\u2193, knowledge, 0.60) \u2192 BPCL (\u2191, knowledge, 0.85). Plausible net effect on BPCL: negative (path confidence 0.51)."
+    },
+    {
+      "target": "Sun Pharma",
+      "steps": [
+        {
+          "from": "USD/INR",
+          "to": "Pharma",
+          "sign": 1,
+          "confidence": 0.55,
+          "evidence_type": "knowledge",
+          "reason": "Pharma exports are dollar-denominated",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        },
+        {
+          "from": "Pharma",
+          "to": "Sun Pharma",
+          "sign": 1,
+          "confidence": 0.8,
+          "evidence_type": "knowledge",
+          "reason": "Sun Pharma is a large exporter",
+          "evidence_text": "",
+          "correlation": null,
+          "counter_evidence": false
+        }
+      ],
+      "confidence": 0.44,
+      "impact": 1,
+      "depth": 2,
+      "explanation": "USD/INR \u2192 Pharma (\u2191, knowledge, 0.55) \u2192 Sun Pharma (\u2191, knowledge, 0.80). Plausible net effect on Sun Pharma: positive (path confidence 0.44)."
+    }
+  ],
+  "affected_assets": [
+    {
+      "name": "IT Services",
+      "type": "Sector",
+      "impact": 1,
+      "score": 0.75,
+      "confidence": 0.75
+    },
+    {
+      "name": "Nifty IT",
+      "type": "Index",
+      "impact": 1,
+      "score": 0.675,
+      "confidence": 0.675
+    },
+    {
+      "name": "TCS",
+      "type": "Company",
+      "impact": 1,
+      "score": 0.637,
+      "confidence": 0.637
+    },
+    {
+      "name": "Infosys",
+      "type": "Company",
+      "impact": 1,
+      "score": 0.637,
+      "confidence": 0.637
+    },
+    {
+      "name": "Oil Marketing Cos",
+      "type": "Sector",
+      "impact": -1,
+      "score": -0.6,
+      "confidence": 0.6
+    },
+    {
+      "name": "Aviation",
+      "type": "Sector",
+      "impact": -1,
+      "score": -0.6,
+      "confidence": 0.6
+    },
+    {
+      "name": "Pharma",
+      "type": "Sector",
+      "impact": 1,
+      "score": 0.55,
+      "confidence": 0.55
+    },
+    {
+      "name": "Gold",
+      "type": "Commodity",
+      "impact": 1,
+      "score": 0.55,
+      "confidence": 0.55
+    },
+    {
+      "name": "IndiGo",
+      "type": "Company",
+      "impact": -1,
+      "score": -0.54,
+      "confidence": 0.54
+    },
+    {
+      "name": "BPCL",
+      "type": "Company",
+      "impact": -1,
+      "score": -0.51,
+      "confidence": 0.51
+    },
+    {
+      "name": "Inflation",
+      "type": "Indicator",
+      "impact": 1,
+      "score": 0.5,
+      "confidence": 0.5
+    },
+    {
+      "name": "FII Flows",
+      "type": "Indicator",
+      "impact": -1,
+      "score": -0.45,
+      "confidence": 0.45
+    },
+    {
+      "name": "Sun Pharma",
+      "type": "Company",
+      "impact": 1,
+      "score": 0.44,
+      "confidence": 0.44
+    },
+    {
+      "name": "Interest Rate Expectations",
+      "type": "Indicator",
+      "impact": 1,
+      "score": 0.35,
+      "confidence": 0.35
+    },
+    {
+      "name": "Bond Yields",
+      "type": "Indicator",
+      "impact": 1,
+      "score": 0.28,
+      "confidence": 0.28
+    },
+    {
+      "name": "FMCG",
+      "type": "Sector",
+      "impact": -1,
+      "score": -0.275,
+      "confidence": 0.275
+    },
+    {
+      "name": "Nifty 50",
+      "type": "Index",
+      "impact": -1,
+      "score": -0.27,
+      "confidence": 0.27
+    },
+    {
+      "name": "HUL",
+      "type": "Company",
+      "impact": -1,
+      "score": -0.234,
+      "confidence": 0.234
+    },
+    {
+      "name": "Real Estate",
+      "type": "Sector",
+      "impact": -1,
+      "score": -0.227,
+      "confidence": 0.227
+    },
+    {
+      "name": "Repo Rate",
+      "type": "Indicator",
+      "impact": 1,
+      "score": 0.21,
+      "confidence": 0.21
+    },
+    {
+      "name": "Nifty Realty",
+      "type": "Index",
+      "impact": -1,
+      "score": -0.205,
+      "confidence": 0.205
+    },
+    {
+      "name": "DLF",
+      "type": "Company",
+      "impact": -1,
+      "score": -0.193,
+      "confidence": 0.193
+    },
+    {
+      "name": "Auto",
+      "type": "Sector",
+      "impact": -1,
+      "score": -0.175,
+      "confidence": 0.175
+    },
+    {
+      "name": "Nifty Auto",
+      "type": "Index",
+      "impact": -1,
+      "score": -0.158,
+      "confidence": 0.158
+    },
+    {
+      "name": "Maruti Suzuki",
+      "type": "Company",
+      "impact": -1,
+      "score": -0.149,
+      "confidence": 0.149
+    },
+    {
+      "name": "Banking",
+      "type": "Sector",
+      "impact": -1,
+      "score": -0.14,
+      "confidence": 0.14
+    },
+    {
+      "name": "Nifty Bank",
+      "type": "Index",
+      "impact": -1,
+      "score": -0.126,
+      "confidence": 0.126
+    }
+  ],
+  "disclaimer": "Plausible impact chains, not predictions. Correlation is not causation.",
+  "graph_size": {
+    "nodes": 38,
+    "edges": 56,
+    "events": 3
+  }
+}

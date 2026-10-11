@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+networkx
+pandas
+yfinance
+anthropic
+python-dotenv
+pytest
